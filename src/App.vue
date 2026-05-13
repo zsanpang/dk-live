@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 // 类型
 interface GiftItem {
@@ -26,6 +26,21 @@ interface LiveData {
 const input = ref('')
 const loading = ref(false)
 const data = ref<LiveData | null>(null)
+const darkMode = ref(true)
+const autoRefresh = ref(false)
+const refreshInterval = ref(5)
+let timer: number | null = null
+const danmuList = ref<string[]>([])
+
+// 模拟弹幕
+function generateDanmu() {
+  const messages = [
+    '666', '主播好帅', '礼物刷起来', '支持下',
+    '加油', '太牛了', '学到了', '前排围观',
+    '来了来了', '支持下主播', '真棒', '点赞'
+  ]
+  return messages[Math.floor(Math.random() * messages.length)]
+}
 
 // 模拟数据
 function generateMock(): LiveData {
@@ -42,7 +57,7 @@ function generateMock(): LiveData {
     giftName: gifts[i % gifts.length],
     giftCount: Math.floor(Math.random() * 100) + 10,
     totalValue: Math.floor(Math.random() * 10000) + 500,
-  }))
+  })).sort((a, b) => b.totalValue - a.totalValue).map((item, i) => ({ ...item, rank: i + 1 }))
 
   return {
     roomId: 'mock_' + Date.now(),
@@ -51,7 +66,7 @@ function generateMock(): LiveData {
     coverUrl: 'https://picsum.photos/400/300?random=1',
     onlineCount: Math.floor(baseOnline * (1 + fluctuate())),
     likeCount: Math.floor(Math.random() * 100000) + 50000,
-    giftIncome: Math.floor(Math.random() * 50000) + 10000,
+    giftIncome: giftList.reduce((sum, g) => sum + g.totalValue, 0),
     giftList,
   }
 }
@@ -65,24 +80,65 @@ function formatNum(n: number): string {
 function handleSearch() {
   if (!input.value.trim()) return
   loading.value = true
+  danmuList.value = []
   setTimeout(() => {
     data.value = generateMock()
     loading.value = false
+    if (autoRefresh.value) startAutoRefresh()
   }, 800)
 }
+
+function startAutoRefresh() {
+  stopAutoRefresh()
+  if (!data.value) return
+  timer = window.setInterval(() => {
+    data.value = generateMock()
+    if (Math.random() > 0.5) {
+      danmuList.value.unshift(generateDanmu())
+      if (danmuList.value.length > 10) danmuList.value.pop()
+    }
+  }, refreshInterval.value * 1000)
+}
+
+function stopAutoRefresh() {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+}
+
+function toggleAutoRefresh() {
+  autoRefresh.value = !autoRefresh.value
+  if (autoRefresh.value) startAutoRefresh()
+  else stopAutoRefresh()
+}
+
+function toggleDarkMode() {
+  darkMode.value = !darkMode.value
+  document.documentElement.setAttribute('data-theme', darkMode.value ? 'dark' : 'light')
+}
+
+onUnmounted(() => {
+  stopAutoRefresh()
+})
 </script>
 
 <template>
-  <div class="app">
+  <div class="app" :data-theme="darkMode ? 'dark' : 'light'">
     <!-- Header -->
     <header class="header">
       <div class="logo">
         <div class="logo-mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z"/>
-        </svg>
-      </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
         <span class="logo-text">dk.live</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" @click="toggleDarkMode">
+          {{ darkMode ? '🌙' : '☀️' }}
+        </button>
       </div>
     </header>
 
@@ -101,6 +157,27 @@ function handleSearch() {
         </button>
       </div>
     </section>
+
+    <!-- Auto Refresh Toggle -->
+    <div class="toggle-row">
+      <label class="toggle">
+        <input type="checkbox" :checked="autoRefresh" @change="toggleAutoRefresh" />
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">自动刷新 ({{ refreshInterval }}s)</span>
+      <select v-if="autoRefresh" v-model="refreshInterval" class="refresh-select">
+        <option :value="3">3秒</option>
+        <option :value="5">5秒</option>
+        <option :value="10">10秒</option>
+      </select>
+    </div>
+
+    <!-- Danmu -->
+    <div v-if="danmuList.length" class="danmu-container">
+      <div class="danmu">
+        <span v-for="(msg, i) in danmuList" :key="i" class="danmu-item">{{ msg }}</span>
+      </div>
+    </div>
 
     <!-- Data Display -->
     <main v-if="data" class="main">
@@ -176,15 +253,25 @@ function handleSearch() {
 </template>
 
 <style>
-:root {
+:root, [data-theme="dark"] {
   --bg: #000000;
   --card: #1c1c1e;
+  --card2: #2c2c2e;
   --text: #ffffff;
   --text2: #8e8e93;
   --accent: #007aff;
   --gold: #ffd60a;
   --silver: #c0c0c0;
   --bronze: #cd7f32;
+}
+
+[data-theme="light"] {
+  --bg: #f2f2f7;
+  --card: #ffffff;
+  --card2: #e5e5ea;
+  --text: #000000;
+  --text2: #8e8e93;
+  --accent: #007aff;
 }
 
 * {
@@ -210,7 +297,10 @@ body {
 
 /* Header */
 .header {
-  padding: 60px 0 40px;
+  padding: 60px 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
@@ -228,7 +318,6 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--bg);
-  font-size: 18px;
 }
 
 .logo-text {
@@ -237,9 +326,24 @@ body {
   letter-spacing: -0.5px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--card);
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
 /* Search */
 .search-section {
-  margin-bottom: 30px;
+  margin-bottom: 16px;
 }
 
 .search-box {
@@ -290,6 +394,98 @@ body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Toggle */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 26px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--card2);
+  border-radius: 26px;
+  transition: 0.3s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle input:checked + .slider {
+  background: var(--accent);
+}
+
+.toggle input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+.toggle-label {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.refresh-select {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--card);
+  border: none;
+  color: var(--text);
+  font-size: 12px;
+}
+
+/* Danmu */
+.danmu-container {
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.danmu {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.danmu-item {
+  background: var(--card);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text2);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Main */
@@ -393,7 +589,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  border-bottom: 1px solid #2c2c2e;
+  border-bottom: 1px solid var(--card2);
 }
 
 .card-header h3 {
