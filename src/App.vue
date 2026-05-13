@@ -77,7 +77,11 @@ function handleSearch() {
     <!-- Header -->
     <header class="header">
       <div class="logo">
-        <div class="logo-mark">▶</div>
+        <div class="logo-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+      </div>
         <span class="logo-text">dk.live</span>
       </div>
     </header>
@@ -154,9 +158,14 @@ function handleSearch() {
       </div>
     </main>
 
-    <!-- Empty State -->
+    <!-- Empty -->
     <div v-else class="empty">
-      <div class="empty-icon">📊</div>
+      <div class="empty-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
       <p>输入直播间链接开始查询</p>
     </div>
 
@@ -460,8 +469,8 @@ body {
 }
 
 .empty-icon {
-  font-size: 56px;
   margin-bottom: 16px;
+  color: var(--text2);
 }
 
 .empty p {
