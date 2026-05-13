@@ -157,7 +157,7 @@ const isDown = (current: number, prev?: number) => prev !== undefined && current
         <Motion :initial="{ scale: 0.8, opacity: 0 }" :animate="{ scale: 1, opacity: 1 }" :transition="{ duration: 0.5 }">
           <div class="logo">
             <span class="logo-icon">🎬</span>
-            <h1 class="title">dk<span class="vue-inline">Vue</span>抖音直播</h1>
+            <h1 class="title">dk抖音直播</h1>
           </div>
         </Motion>
         <span class="vue-badge-top">Vue</span>
