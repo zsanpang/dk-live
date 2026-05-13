@@ -157,6 +157,7 @@ const isDown = (current: number, prev?: number) => prev !== undefined && current
         <Motion :initial="{ scale: 0.8, opacity: 0 }" :animate="{ scale: 1, opacity: 1 }" :transition="{ duration: 0.5 }">
           <div class="logo">
             <span class="logo-icon">🎬</span>
+            <span class="vue-badge">Vue</span>
             <h1 class="title">dk抖音直播</h1>
           </div>
         </Motion>
@@ -418,6 +419,16 @@ body {
 
 .logo-icon {
   font-size: 36px;
+}
+
+.vue-badge {
+  background: linear-gradient(135deg, #42b883 0%, #35495e 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
 }
 
 .title {
