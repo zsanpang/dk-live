@@ -109,6 +109,10 @@ onUnmounted(() => {
 
 <template>
   <div class="app" :data-theme="darkMode ? 'dark' : 'light'">
+    <!-- Background Effect -->
+    <div class="bg-gradient"></div>
+    <div class="bg-noise"></div>
+    
     <!-- Header -->
     <header class="header">
       <div class="logo">
@@ -119,11 +123,14 @@ onUnmounted(() => {
         </div>
         <span class="logo-text">dk.live</span>
       </div>
-      <div class="header-actions">
-        <button class="icon-btn" @click="toggleDarkMode">
-          {{ darkMode ? '🌙' : '☀️' }}
-        </button>
-      </div>
+      <button class="theme-btn" @click="toggleDarkMode">
+        <svg v-if="darkMode" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
     </header>
 
     <!-- Search -->
@@ -136,7 +143,11 @@ onUnmounted(() => {
           @keyup.enter="handleSearch"
         />
         <button class="search-btn" @click="handleSearch" :disabled="loading">
-          <span v-if="!loading">→</span>
+          <span v-if="!loading">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+          </span>
           <span v-else class="loading"></span>
         </button>
       </div>
@@ -148,7 +159,7 @@ onUnmounted(() => {
         <input type="checkbox" :checked="autoRefresh" @change="toggleAutoRefresh" />
         <span class="slider"></span>
       </label>
-      <span class="toggle-label">自动刷新 ({{ refreshInterval }}s)</span>
+      <span class="toggle-label">自动刷新</span>
       <select v-if="autoRefresh" v-model="refreshInterval" class="refresh-select">
         <option :value="3">3秒</option>
         <option :value="5">5秒</option>
@@ -160,28 +171,46 @@ onUnmounted(() => {
     <main v-if="data" class="main">
       <!-- Room Info -->
       <div class="card room-card">
-        <img :src="data.coverUrl" class="cover" />
+        <div class="cover-wrapper">
+          <img :src="data.coverUrl" class="cover" />
+          <div class="live-badge">
+            <span class="dot"></span>
+            LIVE
+          </div>
+        </div>
         <div class="room-info">
           <h2>{{ data.anchorName }}</h2>
           <p>{{ data.roomTitle }}</p>
-        </div>
-        <div class="live-badge">
-          <span class="dot"></span>
-          LIVE
         </div>
       </div>
 
       <!-- Stats -->
       <div class="stats-grid">
         <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ formatNum(data.onlineCount) }}</span>
           <span class="stat-label">在线人数</span>
         </div>
         <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ formatNum(data.likeCount) }}</span>
           <span class="stat-label">点赞</span>
         </div>
         <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
           <span class="stat-value">{{ formatNum(data.giftIncome) }}</span>
           <span class="stat-label">礼物收入</span>
         </div>
@@ -215,7 +244,7 @@ onUnmounted(() => {
     <!-- Empty -->
     <div v-else class="empty">
       <div class="empty-icon">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
           <rect x="2" y="3" width="20" height="14" rx="2"/>
           <path d="M8 21h8M12 17v4"/>
         </svg>
@@ -230,25 +259,38 @@ onUnmounted(() => {
 </template>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
 :root, [data-theme="dark"] {
-  --bg: #000000;
-  --card: #1c1c1e;
-  --card2: #2c2c2e;
-  --text: #ffffff;
-  --text2: #8e8e93;
-  --accent: #007aff;
-  --gold: #ffd60a;
-  --silver: #c0c0c0;
-  --bronze: #cd7f32;
+  --bg: #0a0a0f;
+  --bg-secondary: #12121a;
+  --card: #18181f;
+  --card-hover: #1f1f2a;
+  --text: #f0f0f5;
+  --text2: #8888a0;
+  --accent: #6366f1;
+  --accent-glow: rgba(99, 102, 241, 0.3);
+  --gold: #fbbf24;
+  --silver: #9ca3af;
+  --bronze: #b45309;
+  --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-2: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);
 }
 
 [data-theme="light"] {
-  --bg: #f2f2f7;
+  --bg: #fafafa;
+  --bg-secondary: #ffffff;
   --card: #ffffff;
-  --card2: #e5e5ea;
-  --text: #000000;
-  --text2: #8e8e93;
-  --accent: #007aff;
+  --card-hover: #f5f5f5;
+  --text: #18181b;
+  --text2: #71717a;
+  --accent: #6366f1;
+  --accent-glow: rgba(99, 102, 241, 0.15);
+  --gold: #d97706;
+  --silver: #6b7280;
+  --bronze: #92400e;
+  --gradient-1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-2: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);
 }
 
 * {
@@ -258,23 +300,49 @@ onUnmounted(() => {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  font-family: 'Outfit', 'Noto Sans SC', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 .app {
-  max-width: 480px;
+  max-width: 520px;
   margin: 0 auto;
   padding: 0 20px;
   min-height: 100vh;
+  position: relative;
+}
+
+/* Background Effects */
+.bg-gradient {
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -2;
+}
+
+.bg-noise {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
 }
 
 /* Header */
 .header {
-  padding: 60px 0 20px;
+  padding: 50px 0 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -283,61 +351,80 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .logo-mark {
-  width: 36px;
-  height: 36px;
-  background: var(--text);
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  background: var(--gradient-1);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--bg);
+  color: white;
+  box-shadow: 0 4px 20px var(--accent-glow);
 }
 
 .logo-text {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   letter-spacing: -0.5px;
+  background: var(--gradient-1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.theme-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: var(--card);
-  border: none;
-  font-size: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  color: var(--text2);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.theme-btn:hover {
+  background: var(--card-hover);
+  color: var(--text);
+  transform: rotate(15deg);
 }
 
 /* Search */
 .search-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .search-box {
   display: flex;
   background: var(--card);
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 4px 24px var(--accent-glow);
 }
 
 .search-box input {
   flex: 1;
-  height: 52px;
+  height: 56px;
   padding: 0 20px;
   background: transparent;
   border: none;
   color: var(--text);
-  font-size: 16px;
+  font-size: 15px;
+  font-family: inherit;
   outline: none;
 }
 
@@ -346,13 +433,21 @@ body {
 }
 
 .search-btn {
-  width: 52px;
-  height: 52px;
-  background: var(--accent);
+  width: 56px;
+  height: 56px;
+  background: var(--gradient-1);
   border: none;
   color: white;
-  font-size: 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.search-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: scale(1.02);
 }
 
 .search-btn:disabled {
@@ -361,8 +456,8 @@ body {
 
 .loading {
   display: inline-block;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border: 2px solid white;
   border-top-color: transparent;
   border-radius: 50%;
@@ -378,13 +473,13 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .toggle {
   position: relative;
   width: 44px;
-  height: 26px;
+  height: 24px;
 }
 
 .toggle input {
@@ -400,19 +495,19 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--card2);
-  border-radius: 26px;
+  background: var(--card);
+  border-radius: 24px;
   transition: 0.3s;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   left: 3px;
   bottom: 3px;
-  background: white;
+  background: var(--text2);
   border-radius: 50%;
   transition: 0.3s;
 }
@@ -422,7 +517,8 @@ body {
 }
 
 .toggle input:checked + .slider:before {
-  transform: translateX(18px);
+  transform: translateX(20px);
+  background: white;
 }
 
 .toggle-label {
@@ -431,70 +527,76 @@ body {
 }
 
 .refresh-select {
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 8px;
   background: var(--card);
-  border: none;
+  border: 1px solid rgba(255,255,255,0.05);
   color: var(--text);
-  font-size: 12px;
+  font-size: 13px;
+  font-family: inherit;
 }
 
 /* Main */
 .main {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .card {
   background: var(--card);
   border-radius: 20px;
   overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 
 /* Room Card */
 .room-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px;
+  gap: 16px;
+  padding: 16px;
+}
+
+.cover-wrapper {
   position: relative;
+  flex-shrink: 0;
 }
 
 .cover {
-  width: 80px;
-  height: 60px;
-  border-radius: 10px;
+  width: 100px;
+  height: 70px;
+  border-radius: 12px;
   object-fit: cover;
-}
-
-.room-info h2 {
-  font-size: 17px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.room-info p {
-  font-size: 13px;
-  color: var(--text2);
 }
 
 .live-badge {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 8px;
+  left: 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 20px;
+  font-size: 10px;
   font-weight: 600;
-  color: #ff3b30;
+  color: #ef4444;
+  backdrop-filter: blur(4px);
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
-  background: #ff3b30;
+  width: 5px;
+  height: 5px;
+  background: #ef4444;
   border-radius: 50%;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -502,6 +604,17 @@ body {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+.room-info h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.room-info p {
+  font-size: 13px;
+  color: var(--text2);
 }
 
 /* Stats */
@@ -514,13 +627,32 @@ body {
 .stat-card {
   background: var(--card);
   border-radius: 16px;
-  padding: 20px 16px;
+  padding: 20px 12px;
   text-align: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  background: var(--gradient-1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
 }
 
 .stat-value {
   display: block;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   margin-bottom: 4px;
 }
@@ -539,8 +671,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid var(--card2);
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .card-header h3 {
@@ -551,7 +683,10 @@ body {
 .badge {
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent);
+  padding: 4px 10px;
+  background: var(--gradient-1);
+  color: white;
+  border-radius: 20px;
 }
 
 .gift-list {
@@ -563,17 +698,28 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 14px 20px;
+  transition: all 0.2s ease;
 }
 
-.gift-item.gold { background: linear-gradient(90deg, rgba(255,214,10,0.1) 0%, transparent 100%); }
-.gift-item.silver { background: linear-gradient(90deg, rgba(192,192,192,0.1) 0%, transparent 100%); }
-.gift-item.bronze { background: linear-gradient(90deg, rgba(205,127,50,0.1) 0%, transparent 100%); }
+.gift-item:hover {
+  background: var(--card-hover);
+}
+
+.gift-item.gold { 
+  background: linear-gradient(90deg, rgba(251,191,36,0.1) 0%, transparent 100%);
+}
+.gift-item.silver { 
+  background: linear-gradient(90deg, rgba(156,163,175,0.1) 0%, transparent 100%);
+}
+.gift-item.bronze { 
+  background: linear-gradient(90deg, rgba(180,83,9,0.1) 0%, transparent 100%);
+}
 
 .rank {
   width: 24px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text2);
 }
 
@@ -582,9 +728,11 @@ body {
 .gift-item.bronze .rank { color: var(--bronze); }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
+  border: 2px solid var(--card);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .info {
@@ -616,8 +764,18 @@ body {
 }
 
 .empty-icon {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   color: var(--text2);
+  opacity: 0.5;
+}
+
+.empty-icon svg {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .empty p {
