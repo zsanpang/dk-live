@@ -30,16 +30,23 @@ const darkMode = ref(true)
 const autoRefresh = ref(false)
 const refreshInterval = ref(5)
 let timer: number | null = null
-const danmuList = ref<string[]>([])
+const danmuList = ref<{id: number, avatar: string, text: string}[]>([])
+let danmuId = 0
 
 // 模拟弹幕
 function generateDanmu() {
   const messages = [
     '666', '主播好帅', '礼物刷起来', '支持下',
     '加油', '太牛了', '学到了', '前排围观',
-    '来了来了', '支持下主播', '真棒', '点赞'
+    '来了来了', '支持下主播', '真棒', '点赞',
+    '太厉hai了', '学的', '收藏了', '关注了'
   ]
-  return messages[Math.floor(Math.random() * messages.length)]
+  const avatars = ['👤','🧑','👨','👩','🧔','👴','👵','🧑‍🦰']
+  return {
+    id: ++danmuId,
+    avatar: avatars[Math.floor(Math.random() * avatars.length)],
+    text: messages[Math.floor(Math.random() * messages.length)]
+  }
 }
 
 // 模拟数据
@@ -95,7 +102,7 @@ function startAutoRefresh() {
     data.value = generateMock()
     if (Math.random() > 0.5) {
       danmuList.value.unshift(generateDanmu())
-      if (danmuList.value.length > 10) danmuList.value.pop()
+      if (danmuList.value.length > 50) danmuList.value.pop()
     }
   }, refreshInterval.value * 1000)
 }
@@ -174,8 +181,17 @@ onUnmounted(() => {
 
     <!-- Danmu -->
     <div v-if="danmuList.length" class="danmu-container">
-      <div class="danmu">
-        <span v-for="(msg, i) in danmuList" :key="i" class="danmu-item">{{ msg }}</span>
+      <div class="danmu-header">
+        <span class="danmu-title">💬 弹幕</span>
+        <span class="danmu-count">{{ danmuList.length }}条</span>
+      </div>
+      <div class="danmu-scroll">
+        <div class="danmu-track">
+          <div v-for="item in danmuList" :key="item.id" class="danmu-item">
+            <span class="danmu-avatar">{{ item.avatar }}</span>
+            <span class="danmu-text">{{ item.text }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -465,27 +481,70 @@ body {
 /* Danmu */
 .danmu-container {
   margin-bottom: 16px;
+  background: var(--card);
+  border-radius: 16px;
   overflow: hidden;
 }
 
-.danmu {
+.danmu-header {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card2);
+}
+
+.danmu-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.danmu-count {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.danmu-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.danmu-track {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .danmu-item {
-  background: var(--card);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  color: var(--text2);
-  animation: fadeIn 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card2);
+  border-radius: 10px;
+  animation: slideIn 0.3s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.danmu-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #5856d6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.danmu-text {
+  font-size: 14px;
+  color: var(--text);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* Main */
