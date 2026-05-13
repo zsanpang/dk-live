@@ -161,7 +161,7 @@ const isDown = (current: number, prev?: number) => prev !== undefined && current
           </div>
         </Motion>
         <span class="vue-badge-top">Vue</span>
-        <p class="subtitle">实时掌握直播间数据</p>
+        <p class="subtitle">实时掌握直播间数据 123</p>
       </header>
 
       <!-- 搜索框 -->
